@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract PoolingLottery is Ownable {
     struct Pool {
@@ -11,14 +12,18 @@ contract PoolingLottery is Ownable {
         uint256 pooledAmount;
         uint256 deadline;
         address token;
-        string coin;
+        string symbol;
         mapping(address => uint256) distribution;
     }
 
     // address token = 0xf79F3Be48127A36e831e0A47090a1765B75BEfc8;
     Pool[] public pools;
 
-    function createPool(address _token, uint256 _deadline) external onlyOwner {
+    function createPool(
+        address _token,
+        uint256 _deadline,
+        string memory _symbol
+    ) external onlyOwner {
         // Pool storage newpool;
 
         // pools.push(newpool);
@@ -28,7 +33,8 @@ contract PoolingLottery is Ownable {
         newpool.pooledAmount = 0;
         newpool.deadline = _deadline;
         newpool.token = _token;
-        newpool.coin = "COIN";
+        newpool.symbol = _symbol;
+        newpool.distribution[address(0)] = 0;
 
         // pools.push(newpool);
     }
@@ -37,13 +43,21 @@ contract PoolingLottery is Ownable {
         return pools.length;
     }
 
+    function viewDistributionMappingValue(uint256 poolIndex, address key)
+        public
+        view
+        returns (uint256)
+    {
+        return pools[poolIndex].distribution[key];
+    }
+
     function poolTokens(uint256 _amount, uint256 poolIndex) public {
         require(
             IERC20(pools[poolIndex].token).balanceOf(address(msg.sender)) > 0,
             "Insufficient funds!"
         );
         require(
-            poolIndex > 0 && poolIndex < pools.length,
+            poolIndex >= 0 && poolIndex < pools.length,
             "Invalid pool index"
         );
         require(_amount > 0, "Invalid amount!");
@@ -52,14 +66,14 @@ contract PoolingLottery is Ownable {
             "Already deposited!"
         );
 
+        pools[poolIndex].pooledAmount += _amount;
+        pools[poolIndex].distribution[msg.sender] = _amount;
+
         IERC20(pools[poolIndex].token).transferFrom(
             msg.sender,
             address(this),
             _amount
         );
-
-        pools[poolIndex].distribution[msg.sender] = _amount;
-        pools[poolIndex].pooledAmount += _amount;
     }
 
     function claimRewards(uint256 poolIndex) public {
@@ -78,11 +92,12 @@ contract PoolingLottery is Ownable {
             "Pool has already been claimed by someone!"
         );
 
+        pools[poolIndex].winner = msg.sender;
+
         IERC20(pools[poolIndex].token).transfer(
             msg.sender,
             pools[poolIndex].pooledAmount
         );
-        pools[poolIndex].winner = msg.sender;
     }
 }
 
