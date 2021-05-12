@@ -68,7 +68,10 @@ contract PoolingLottery is Ownable {
             "The pooling time is not over yet. Please try after deadline"
         );
 
-        require(pools[poolIndex].distribution[msg.sender] != 0,"Not part of that pool")
+        require(
+            pools[poolIndex].distribution[msg.sender] != 0,
+            "Not part of that pool"
+        );
 
         require(
             pools[poolIndex].winner == address(0),

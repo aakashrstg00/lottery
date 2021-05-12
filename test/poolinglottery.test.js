@@ -1,10 +1,5 @@
-const {
-    network,
-    ethers
-} = require("hardhat");
-const {
-    expect
-} = require("chai");
+const {ethers} = require("hardhat");
+const {expect} = require("chai");
 const BigNumber = require('bignumber.js');
 
 
@@ -46,10 +41,10 @@ describe("PoolingLottery", function () {
         await lottery.poolTokens(0,0);
     });
 
-    it("Should be able to claim rewards",async function() {
-        await lottery.deployed();
-        // console.log(lottery.address)
-        await lottery.poolTokens(0,0);
-    });
+    // it("Should be able to claim rewards",async function() {
+    //     await lottery.deployed();
+    //     // console.log(lottery.address)
+    //     await lottery.poolTokens(0,0);
+    // });
 
 });
